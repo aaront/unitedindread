@@ -1,4 +1,4 @@
 unitedindread
 =============
 
-Tracking the pulse of the Sens community
+Group therapy for Senators fans
