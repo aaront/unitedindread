@@ -2,55 +2,58 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine, Column, ForeignKey, String, Integer, BigInteger, DateTime, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import sessionmaker, scoped_session, relationship
 
 from unitedindread.config import read_db
 
 Base = declarative_base()
 
-Session = sessionmaker()
+session_factory = sessionmaker()
+Session = scoped_session(session_factory)
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = 'user'
     id = Column(BigInteger, primary_key=True)
     screen_name = Column(String)
     is_tracking = Column(Boolean)
+    tweets = relationship('Tweet', backref='user')
+    retweets = relationship('Retweet', backref='user')
 
 
 class Tweet(Base):
-    __tablename__ = 'tweets'
+    __tablename__ = 'tweet'
     id = Column(BigInteger, primary_key=True)
+    user_id = Column(BigInteger, ForeignKey('user.id'))
     created_at = Column(DateTime)
     text = Column(String)
     lat = Column(Float)
     lng = Column(Float)
-    author_id = Column(BigInteger, ForeignKey('users.id'))
-    author = relationship('User', foreign_keys=[author_id])
-    retweets = Column(Integer)
-    is_reply = Column(Boolean)
+    retweets = relationship('Retweet', backref='tweet')
 
 
-def _connect(database=None, user=None, password=None, host=None, port=None, config_path=None):
-    if database is None:
-        conf, cfg_path = read_db(config_path)
-        if conf is None:
+class Retweet(Base):
+    __tablename__ = 'retweet'
+    user_id = Column(BigInteger, ForeignKey('user.id'), primary_key=True)
+    tweet_id = Column(BigInteger, ForeignKey('tweet.id'), primary_key=True)
+    count = Column(Integer, default=1)
+
+
+def _connect(connect_url=None, config_path=None):
+    if connect_url is None:
+        connect_url, cfg_path = read_db(config_path)
+        if connect_url is None:
             raise IOError('Couldn\'t read config file in "{0}"'.format(cfg_path))
-        database, user, password = conf['database'], conf['user'], conf['password']
-        host, port = conf['host'], conf['port']
-    if not host:
-        host = 'localhost'
-    if not port:
-        port = 5432
-    return create_engine('postgresql://{}:{}@{}:{}/{}'.format(user, password, host, port, database))
+    return create_engine(connect_url)
 
 
 @contextmanager
-def session(database=None, user=None, password=None, host=None, port=None, config_path=None):
-    Session.configure(bind=_connect(database, user, password, host, port, config_path))
+def session(connect_url=None, config_path=None):
+    Session.configure(bind=_connect(connect_url, config_path))
     curr_session = Session()
     try:
         yield curr_session
+        curr_session.commit()
     except:
         curr_session.rollback()
         raise
@@ -58,5 +61,5 @@ def session(database=None, user=None, password=None, host=None, port=None, confi
         curr_session.close()
 
 
-def init(database=None, user=None, password=None, host=None, port=None):
-    Base.metadata.create_all(_connect(database, user, password, host, port))
+def init(connect_url=None):
+    Base.metadata.create_all(_connect(connect_url))

@@ -5,13 +5,9 @@ import unitedindread.listener as listener
 
 
 @click.command()
-@click.option('--database', '-d')
-@click.option('--user', '-u')
-@click.option('--password', '-p')
-@click.option('--host', '-h')
-@click.option('--port', '-p')
-def init(database, user, password, host, port):
-    db.init(database, user, password, host, port)
+@click.option('--connect', '-c')
+def init(connect):
+    db.init(connect)
 
 
 @click.command()
