@@ -17,6 +17,7 @@ class User(Base):
     id = Column(BigInteger, primary_key=True)
     screen_name = Column(String)
     is_tracking = Column(Boolean)
+    team = Column(String(length=3))
     tweets = relationship('Tweet', backref='user')
     retweets = relationship('Retweet', backref='user')
 

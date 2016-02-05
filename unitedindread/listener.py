@@ -34,7 +34,7 @@ class DreadListener(tweepy.StreamListener):
 
 def get_user(session, user):
     u = session.query(db.User).filter_by(id=user.id).one_or_none()
-    if not user:
+    if not u:
         u = db.User(id=user.id, screen_name=user.screen_name.encode('utf-8'))
     return u
 
