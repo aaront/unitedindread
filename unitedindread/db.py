@@ -48,10 +48,14 @@ def _connect(connect_url=None, config_path=None):
     return create_engine(connect_url)
 
 
+def get_session(connect_url=None, config_path=None):
+    Session.configure(bind=_connect(connect_url, config_path))
+    return Session()
+
+
 @contextmanager
 def session(connect_url=None, config_path=None):
-    Session.configure(bind=_connect(connect_url, config_path))
-    curr_session = Session()
+    curr_session = get_session(connect_url, config_path)
     try:
         yield curr_session
         curr_session.commit()

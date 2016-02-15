@@ -18,8 +18,8 @@ class DreadListener(tweepy.StreamListener):
                 return
             add_get_tweet(session, status)
         try:
-            click.echo('"{}" --{}'.format(status.text.encode('utf-8'),
-                                          status.user.screen_name.encode('utf-8')))
+            click.echo('"{}" --{}'.format(status.text,
+                                          status.user.screen_name))
         except:
             pass
 
@@ -35,7 +35,7 @@ class DreadListener(tweepy.StreamListener):
 def get_user(session, user):
     u = session.query(db.User).filter_by(id=user.id).one_or_none()
     if not u:
-        u = db.User(id=user.id, screen_name=user.screen_name.encode('utf-8'))
+        u = db.User(id=user.id, screen_name=user.screen_name)
     return u
 
 
@@ -49,7 +49,7 @@ def add_get_tweet(session, status):
     tweet = session.query(db.Tweet).filter_by(id=status.id).one_or_none()
     if not tweet:
         tweet = db.Tweet(id=status.id, user=get_user(session, status.user), created_at=status.created_at,
-                         text=status.text.encode('utf-8'), lat=lat, lng=lng)
+                         text=status.text, lat=lat, lng=lng)
         session.add(tweet)
     return tweet
 

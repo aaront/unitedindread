@@ -1,4 +1,4 @@
-psycopg2cffi
 sqlalchemy
+psycopg2
 tweepy
 click
